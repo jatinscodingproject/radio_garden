@@ -1,6 +1,7 @@
 import { useEffect, useRef, useState } from "react";
 import Globe from "react-globe.gl";
 import { X, Play } from "lucide-react";
+
 interface Country {
   geometry: any;
   properties: {
@@ -9,7 +10,11 @@ interface Country {
   };
 }
 
-export default function Globe3D() {
+interface GlobeProps {
+  started: boolean;
+}
+
+export default function Globe3D({ started }: GlobeProps) {
   const audioRef = useRef<HTMLAudioElement>(null);
   const [showPanel, setShowPanel] = useState(false);
   const [stations, setStations] = useState<any[]>([]);

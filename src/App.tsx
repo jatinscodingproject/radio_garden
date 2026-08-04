@@ -8,7 +8,6 @@ export default function App() {
 
   return (
     <div className="relative h-screen w-screen overflow-hidden bg-[#020617]">
-      {/* Background */}
       <div
         className="absolute inset-0"
         style={{
@@ -17,34 +16,34 @@ export default function App() {
         }}
       />
 
-      {!started ? (
-        <div className="absolute inset-0 z-50 flex items-center justify-center bg-[#020617]/95 backdrop-blur-md">
-          <div className="text-center px-6">
-            <h1 className="mb-4 text-4xl font-bold text-white">
+      <Navbar />
+
+      <main className="absolute inset-0 pt-20">
+        <Globe started={started} />
+      </main>
+
+      {!started && (
+        <div className="absolute inset-0 z-50 flex items-center justify-center bg-black/50 backdrop-blur-md">
+          <div className="text-center">
+
+            <h1 className="mb-4 text-5xl font-bold text-white">
               RadioFyy
             </h1>
 
-            <p className="mb-10 text-gray-300 text-lg">
-              Discover and listen to radio stations from around the world.
+            <p className="mb-10 text-xl text-gray-300">
+              Explore radio stations from every country
             </p>
 
             <button
               onClick={() => setStarted(true)}
-              className="flex items-center gap-3 rounded-full bg-green-500 px-8 py-4 text-lg font-semibold text-white transition hover:bg-green-600 mx-auto"
+              className="rounded-full bg-green-500 px-10 py-5 text-xl font-bold text-white transition hover:bg-green-600"
             >
-              <Play className="h-6 w-6 fill-white" />
+              <Play className="mr-3 inline h-6 w-6 fill-white" />
               Tap to Play
             </button>
+
           </div>
         </div>
-      ) : (
-        <>
-          <Navbar />
-
-          <main className="absolute inset-0 pt-20">
-            <Globe />
-          </main>
-        </>
       )}
     </div>
   );

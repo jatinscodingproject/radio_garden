@@ -17,7 +17,7 @@ export default function Navbar() {
             </div>
 
             <h1 className="text-lg font-bold text-white sm:text-xl lg:text-2xl">
-              Radio Garden
+              RadioFyy
             </h1>
           </div>
 

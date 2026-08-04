@@ -14,7 +14,7 @@ interface GlobeProps {
   started: boolean;
 }
 
-export default function Globe3D({ started }: GlobeProps) {
+export default function Globe3D() {
   const audioRef = useRef<HTMLAudioElement>(null);
   const [showPanel, setShowPanel] = useState(false);
   const [stations, setStations] = useState<any[]>([]);

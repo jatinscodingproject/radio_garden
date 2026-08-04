@@ -21,7 +21,7 @@ export default function App() {
         <div className="absolute inset-0 z-50 flex items-center justify-center bg-[#020617]/95 backdrop-blur-md">
           <div className="text-center px-6">
             <h1 className="mb-4 text-4xl font-bold text-white">
-              RadioFyy
+              🌍 Radio Garden
             </h1>
 
             <p className="mb-10 text-gray-300 text-lg">

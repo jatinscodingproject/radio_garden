@@ -10,9 +10,7 @@ interface Country {
   };
 }
 
-interface GlobeProps {
-  started: boolean;
-}
+
 
 export default function Globe3D() {
   const audioRef = useRef<HTMLAudioElement>(null);

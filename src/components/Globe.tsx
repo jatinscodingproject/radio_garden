@@ -1,4 +1,9 @@
-import { useEffect, useRef, useState } from "react";
+import {
+  useEffect,
+  useRef,
+  useState,
+  useCallback
+} from "react";
 import Globe from "react-globe.gl";
 import { X, Play } from "lucide-react";
 
@@ -14,57 +19,47 @@ interface Country {
 
 export default function Globe3D() {
   const audioRef = useRef<HTMLAudioElement>(null);
+  const radioCache = useRef<Record<string, any[]>>({});
   const [showPanel, setShowPanel] = useState(false);
   const [stations, setStations] = useState<any[]>([]);
   const [currentStation, setCurrentStation] = useState<any>(null);
   const globeRef = useRef<any>(null);
-  const playCountryRadio = async (countryName: string) => {
+  const playCountryRadio = useCallback(async (countryName: string) => {
   try {
-    console.log("Searching:", countryName);
+    let data = radioCache.current[countryName];
 
-    const response = await fetch(
-      `https://de1.api.radio-browser.info/json/stations/search?country=${encodeURIComponent(
-        countryName
-      )}&hidebroken=true&limit=20`
-    );
+    if (!data) {
+      const response = await fetch(
+        `https://de1.api.radio-browser.info/json/stations/search?country=${encodeURIComponent(countryName)}&hidebroken=true&limit=20`
+      );
 
-    const data = await response.json();
+      data = await response.json();
 
-    console.log(data);
+      data.sort((a: any, b: any) => b.votes - a.votes);
 
-    if (!data.length) {
-      console.log("No radio stations found");
-      return;
+      radioCache.current[countryName] = data;
     }
 
-    data.sort((a: any, b: any) => b.votes - a.votes);
+    setStations(data);
 
-    data.sort((a: any, b: any) => b.votes - a.votes);
+    const first = data.find(
+      (s: any) => s.url_resolved?.startsWith("http")
+    );
 
-setStations(data);
+    if (!first) return;
 
-const firstStation = data.find(
-  (s: any) => s.url_resolved && s.url_resolved.startsWith("http")
-);
+    setCurrentStation(first);
 
-if (!firstStation) return;
-
-setCurrentStation(firstStation);
-
-if (audioRef.current) {
-  audioRef.current.src = firstStation.url_resolved;
-  audioRef.current.load();
-
-  try {
-    await audioRef.current.play();
-  } catch (e) {
-    console.log("Autoplay blocked");
-  }
-}
+    if (audioRef.current) {
+      audioRef.current.src = first.url_resolved;
+      audioRef.current.play().catch(() => {});
+    }
   } catch (err) {
     console.error(err);
   }
-};
+}, []);
+
+
   const [countries, setCountries] = useState<Country[]>([]);
   const [selectedCountry, setSelectedCountry] = useState<Country | null>(null);
   const [hoverCountry, setHoverCountry] = useState<Country | null>(null);
@@ -195,88 +190,87 @@ if (audioRef.current) {
         }}
       />
      {selectedCountry && showPanel && (
-  <div
-    className="
-      fixed
-      bottom-0
-      left-0
-      right-0
-      md:absolute
-      md:top-24
-      md:right-5
-      md:left-auto
-      md:bottom-auto
-      md:w-96
-      max-h-[75vh]
-      rounded-t-3xl
-      md:rounded-2xl
-      bg-slate-900/95
-      backdrop-blur-xl
-      border
-      border-white/10
-      shadow-2xl
-      z-40
-      flex
-      flex-col
-    "
-  >
-    {/* Header */}
-    <div className="flex items-center justify-between border-b border-slate-700 p-4">
-      <div>
-        <h2 className="text-xl font-bold text-white">
-          {selectedCountry.properties.ADMIN}
-        </h2>
+        <div
+          className="
+            fixed
+            bottom-0
+            left-0
+            right-0
+            md:absolute
+            md:top-24
+            md:right-5
+            md:left-auto
+            md:bottom-auto
+            md:w-96
+            max-h-[75vh]
+            rounded-t-3xl
+            md:rounded-2xl
+            bg-slate-900/95
+            backdrop-blur-xl
+            border
+            border-white/10
+            shadow-2xl
+            z-40
+            flex
+            flex-col
+          ">
+          {/* Header */}
+          <div className="flex items-center justify-between border-b border-slate-700 p-4">
+            <div>
+              <h2 className="text-xl font-bold text-white">
+                {selectedCountry.properties.ADMIN}
+              </h2>
 
-        {currentStation && (
-          <p className="mt-1 text-sm text-gray-400">
-            🎵 {currentStation.name}
-          </p>
-        )}
-      </div>
+              {currentStation && (
+                <p className="mt-1 text-sm text-gray-400">
+                  🎵 {currentStation.name}
+                </p>
+              )}
+            </div>
 
-      <button
-        onClick={() => setShowPanel(false)}
-        className="rounded-full p-2 hover:bg-slate-700"
-      >
-        <X className="h-5 w-5 text-white" />
-      </button>
-    </div>
-
-    {/* Stations */}
-    <div className="flex-1 overflow-y-auto p-4 space-y-2">
-      {stations.map((station: any) => (
-        <button
-          key={station.stationuuid}
-          onClick={() => {
-            setCurrentStation(station);
-
-            if (audioRef.current) {
-              audioRef.current.src = station.url_resolved;
-              audioRef.current.play();
-            }
-          }}
-          className={`flex w-full items-center gap-3 rounded-xl p-3 transition ${
-            currentStation?.stationuuid === station.stationuuid
-              ? "bg-blue-600"
-              : "bg-slate-800 hover:bg-slate-700"
-          }`}
-        >
-          <Play className="h-4 w-4" />
-
-          <div className="flex-1 text-left">
-            <p className="font-medium text-white">
-              {station.name}
-            </p>
-
-            <p className="text-xs text-gray-300">
-              {station.language || "Unknown"}
-            </p>
+            <button
+              onClick={() => setShowPanel(false)}
+              className="rounded-full p-2 hover:bg-slate-700"
+            >
+              <X className="h-5 w-5 text-white" />
+            </button>
           </div>
-        </button>
-      ))}
-    </div>
-  </div>
-)}
+
+          {/* Stations */}
+          <div className="flex-1 overflow-y-auto p-4 space-y-2">
+            {stations.map((station: any) => (
+              <button
+                key={station.stationuuid}
+                onClick={() => {
+                  setCurrentStation(station);
+
+                  if (audioRef.current) {
+                    audioRef.current.src = station.url_resolved;
+                    audioRef.current.play();
+                  }
+                }}
+                className={`flex w-full items-center gap-3 rounded-xl p-3 transition ${
+                  currentStation?.stationuuid === station.stationuuid
+                    ? "bg-blue-600"
+                    : "bg-slate-800 hover:bg-slate-700"
+                }`}
+              >
+                <Play className="h-4 w-4" />
+
+                <div className="flex-1 text-left">
+                  <p className="font-medium text-white">
+                    {station.name}
+                  </p>
+
+                  <p className="text-xs text-gray-300">
+                    {station.language || "Unknown"}
+                  </p>
+                </div>
+              </button>
+            ))}
+          </div>
+        </div>
+      )}
       <audio
         ref={audioRef}
         controls
